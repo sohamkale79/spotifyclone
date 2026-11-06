@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tunebox – Spotify clone</title>
+<style>
+:root{--bg:#000;--panel:#121212;--card:#1a1a1a;--hover:#2a2a2a;--text:#fff;--muted:#a7a7a7;--accent:#1ed760;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:"Circular",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px;overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app{display:grid;grid-template-columns:230px 1fr;grid-template-rows:1fr 84px;gap:8px;height:100%;padding:8px}
+.side,.main{background:var(--panel);border-radius:10px;overflow:auto}
+.side{padding:20px 12px}
+.logo{font-weight:800;font-size:20px;padding:0 12px 18px;display:flex;gap:8px;align-items:center}
+.logo i{width:26px;height:26px;border-radius:50%;background:var(--accent);display:inline-block}
+.nav button{display:block;width:100%;text-align:left;padding:10px 12px;border-radius:6px;color:var(--muted);font-weight:700}
+.nav button:hover,.nav button.on{color:var(--text)}
+.nav button.on{background:var(--hover)}
+.side h3{color:var(--muted);font-size:13px;padding:20px 12px 6px}
+.main{padding:0 24px 24px;background:linear-gradient(180deg,var(--h,#1f3a2c) 0,var(--panel) 320px)}
+.top{position:sticky;top:0;padding:16px 0;display:flex;gap:12px;z-index:2}
+.top input{flex:1;max-width:360px;background:#242424;border:0;color:var(--text);padding:11px 16px;border-radius:30px}
+.hero{display:flex;gap:20px;align-items:flex-end;padding:12px 0 22px}
+.hero .art{width:160px;height:160px;border-radius:6px;flex:none;box-shadow:0 8px 30px #0008}
+.hero h1{font-size:clamp(28px,5vw,56px);font-weight:900;line-height:1.05}
+.hero p{color:var(--muted);margin-top:8px}
+.big{width:54px;height:54px;border-radius:50%;background:var(--accent);color:#000;font-size:20px;margin:0 0 18px;display:grid;place-items:center}
+.big:hover{transform:scale(1.05)}
+.list{width:100%;border-collapse:collapse}
+.list th{color:var(--muted);font-weight:400;text-align:left;padding:8px;border-bottom:1px solid #2a2a2a}
+.list td{padding:8px;border-radius:0}
+.list tr.r{cursor:pointer}
+.list tr.r:hover td{background:var(--hover)}
+.list td:first-child{width:36px;color:var(--muted);text-align:center}
+.list tr.cur .t,.list tr.cur td:first-child{color:var(--accent)}
+.list td:first-child svg{vertical-align:middle}
+.cell{display:flex;gap:12px;align-items:center}
+.cell .art{width:40px;height:40px;border-radius:4px;flex:none}
+.sub{color:var(--muted);font-size:13px}
+.heart{color:var(--muted);display:grid;place-items:center}
+.heart.on{color:var(--accent)}
+.empty{color:var(--muted);padding:40px 8px}
+.bar{grid-column:1/-1;background:var(--bg);display:grid;grid-template-columns:1fr 2fr 1fr;align-items:center;gap:12px;padding:0 12px}
+.np{display:flex;gap:12px;align-items:center;min-width:0}
+.np .art{width:56px;height:56px;border-radius:4px;flex:none}
+.np b,.np span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ctl{display:flex;flex-direction:column;align-items:center;gap:6px}
+.btns{display:flex;gap:16px;align-items:center}
+.btns button{color:var(--muted);display:grid;place-items:center}
+.btns button:hover,.btns button.on{color:var(--text)}
+.btns button.on{color:var(--accent)}
+.btns .pp{width:36px;height:36px;border-radius:50%;background:var(--text);color:#000;font-size:14px}
+.prog{display:flex;gap:8px;align-items:center;width:100%;max-width:560px;color:var(--muted);font-size:12px}
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1;height:4px;border-radius:2px;background:linear-gradient(90deg,var(--text) var(--p,0%),#4d4d4d var(--p,0%));cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--text)}
+input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radius:50%;background:var(--text)}
+.vol{display:flex;gap:8px;align-items:center;justify-content:flex-end;color:var(--muted)}
+.vol input{max-width:110px}
+.chips{display:none}
+@media(max-width:760px){
+ .app{grid-template-columns:1fr;grid-template-rows:1fr 130px}
+ .side{display:none}
+ .chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px}
+ .chips button{background:#2a2a2a;padding:8px 14px;border-radius:30px;white-space:nowrap}
+ .chips button.on{background:var(--accent);color:#000}
+ .bar{grid-template-columns:1fr;gap:4px;padding:6px 12px}
+ .np .art{width:40px;height:40px}.vol,.list .al{display:none}
+ .hero .art{width:100px;height:100px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+ <aside class="side">
+  <div class="logo"><i></i>Tunebox</div>
+  <nav class="nav" id="nav"></nav>
+ </aside>
+ <main class="main" id="main">
+  <div class="top"><input id="q" type="search" placeholder="Search songs or artists" aria-label="Search"></div>
+  <div class="chips" id="chips"></div>
+  <div class="hero"><div class="art" id="hart"></div><div><p>Playlist</p><h1 id="htitle"></h1><p id="hsub"></p></div></div>
+  <button class="big" id="bigplay" aria-label="Play all"></button>
+  <table class="list"><thead><tr><th>#</th><th>Title</th><th class="al">Album</th><th></th><th>Time</th></tr></thead><tbody id="rows"></tbody></table>
+  <p class="empty" id="empty" hidden></p>
+ </main>
+ <footer class="bar">
+  <div class="np"><div class="art" id="nart"></div><div style="min-width:0"><b id="ntitle">Nothing playing</b><span class="sub" id="nartist">Pick a song to start</span></div></div>
+  <div class="ctl">
+   <div class="btns">
+    <button id="shuf" aria-label="Shuffle"></button>
+    <button id="prev" aria-label="Previous"></button>
+    <button id="pp" class="pp" aria-label="Play"></button>
+    <button id="next" aria-label="Next"></button>
+    <button id="rep" aria-label="Repeat"></button>
+   </div>
+   <div class="prog"><span id="cur">0:00</span><input type="range" id="seek" min="0" max="100" value="0" aria-label="Seek"><span id="dur">0:00</span></div>
+  </div>
+  <div class="vol"><span id="vi" style="display:flex"></span><input type="range" id="vol" min="0" max="100" value="60" aria-label="Volume"></div>
+ </footer>
+</div>
+<script>
+const T=[
+["Midnight Highway","Neon Parade","Night Drive",52,265],["Glass Rain","Luma Vale","Soft Static",58,200],
+["Paper Planes","The Quiet Hours","Small Maps",64,30],["Slow Orbit","Kite & Comet","Gravity Well",48,285],
+["Golden Hour","Marlow","Afterglow",56,40],["City Lullaby","Luma Vale","Soft Static",60,230],
+["Static Bloom","Neon Parade","Night Drive",50,310],["Harbor Lights","The Quiet Hours","Small Maps",66,195],
+["Echo Garden","Kite & Comet","Gravity Well",54,150],["Velvet Signal","Marlow","Afterglow",62,330]
+].map((t,i)=>({id:i,title:t[0],artist:t[1],album:t[2],dur:t[3],hue:t[4]}));
+const P=[{n:"All songs",f:()=>T},{n:"Liked songs",f:()=>T.filter(t=>liked.has(t.id))},
+{n:"Night Drive",f:()=>T.filter(t=>t.album=="Night Drive"||t.album=="Soft Static")},
+{n:"Focus",f:()=>T.filter(t=>["Gravity Well","Small Maps"].includes(t.album))}];
+let view=0,q="",queue=[],qi=-1,playing=false,pos=0,shuf=false,rep=false;
+const au=new Audio(),urls={};
+const liked=new Set();
+try{JSON.parse(localStorage.getItem("tb-liked")||"[]").forEach(x=>liked.add(x))}catch(e){}
+const $=id=>document.getElementById(id);
+const IC={
+ play:'<path d="M8 5v14l11-7z"/>',pause:'<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>',
+ prev:'<path d="M6 6h2v12H6zM9.5 12 18 18V6z"/>',next:'<path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/>',
+ shuf:'<path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>',
+ rep:'<path d="m17 2 4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3"/>',
+ heart:'<path d="M12 21S4.500 16.400 2.500 11.800C1.200 8.500 3 5 6.400 5c2 0 3.600 1.100 5.600 3.200C14 6.100 15.600 5 17.600 5c3.400 0 5.200 3.500 3.900 6.800C19.500 16.400 12 21 12 21z"/>',
+ vol:'<path d="M11 5 6 9H3v6h3l5 4zM15.500 8.500a5 5 0 0 1 0 7M18.500 5.500a9 9 0 0 1 0 13"/>',
+ eq:'<path d="M5 20v-8M12 20V5M19 20v-11" stroke-width="3"/>'};
+const ic=(p,s=18,f)=>`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="${f?"currentColor":"none"}" stroke="${f?"none":"currentColor"}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+$("shuf").innerHTML=ic(IC.shuf);$("rep").innerHTML=ic(IC.rep);$("vi").innerHTML=ic(IC.vol);
+$("prev").innerHTML=ic(IC.prev,20,1);$("next").innerHTML=ic(IC.next,20,1);
+const art=h=>`background:linear-gradient(135deg,hsl(${h} 70% 55%),hsl(${(h+50)%360} 60% 25%))`;
+const fmt=s=>Math.floor(s/60)+":"+String(Math.floor(s%60)).padStart(2,"0");
+const cur=()=>queue[qi];
+function shown(){const s=q.trim().toLowerCase();return P[view].f().filter(t=>!s||(t.title+t.artist).toLowerCase().includes(s))}
+function nav(){
+ $("nav").innerHTML=P.map((p,i)=>`<button class="${i==view?"on":""}" data-v="${i}">${p.n}</button>`).join("");
+ $("chips").innerHTML=P.map((p,i)=>`<button class="${i==view?"on":""}" data-v="${i}">${p.n}</button>`).join("");
+}
+function render(){
+ const l=shown(),first=P[view].f()[0];
+ $("htitle").textContent=P[view].n;
+ $("hsub").textContent=P[view].f().length+" songs";
+ const h=first?first.hue:140;
+ $("hart").style.cssText=art(h);$("main").style.setProperty("--h",`hsl(${h} 45% 22%)`);
+ $("rows").innerHTML=l.map((t,i)=>`<tr class="r ${cur()&&cur().id==t.id?"cur":""}" data-id="${t.id}"><td>${cur()&&cur().id==t.id&&playing?ic(IC.eq,14):i+1}</td>
+ <td><div class="cell"><div class="art" style="${art(t.hue)}"></div><div><div class="t">${t.title}</div><div class="sub">${t.artist}</div></div></div></td>
+ <td class="al sub">${t.album}</td><td><button class="heart ${liked.has(t.id)?"on":""}" data-h="${t.id}" aria-label="Like">${liked.has(t.id)?ic(IC.heart,18,1):ic(IC.heart)}</button></td><td class="sub">${fmt(t.dur)}</td></tr>`).join("");
+ $("empty").hidden=l.length>0;
+ $("empty").textContent=view==1&&!q?"No liked songs yet. Tap the heart on any song.":"No songs match your search.";
+ nav();
+}
+function bar(){
+ const t=cur();
+ $("ntitle").textContent=t?t.title:"Nothing playing";
+ $("nartist").textContent=t?t.artist:"Pick a song to start";
+ $("nart").style.cssText=t?art(t.hue):"background:#222";
+ $("pp").innerHTML=ic(playing?IC.pause:IC.play,18,1);$("pp").setAttribute("aria-label",playing?"Pause":"Play");
+ $("bigplay").innerHTML=ic(playing?IC.pause:IC.play,24,1);
+ $("dur").textContent=t?fmt(t.dur):"0:00";
+ $("cur").textContent=fmt(pos);
+ const p=t?pos/t.dur*100:0;$("seek").value=p;$("seek").style.setProperty("--p",p+"%");
+}
+function setVol(){const v=$("vol").value;$("vol").style.setProperty("--p",v+"%");au.volume=v/100}
+/* No audio files can be bundled here, so each track is synthesised into a real WAV file on first play.
+   To use your own songs, return a file path (e.g. "songs/"+t.id+".mp3") from this function instead. */
+function wav(t){
+ if(urls[t.id])return urls[t.id];
+ const sr=22050,n=sr*t.dur,d=new Int16Array(n),root=110*Math.pow(2,(t.hue%12)/12),beat=60/(70+(t.id*7)%40);
+ const prog=[[0,4,7],[5,9,12],[7,11,14],[3,7,10]],P2=6.2832;
+ for(let i=0;i<n;i++){
+  const s=i/sr,b=Math.floor(s/beat),ch=prog[Math.floor(b/4)%4],ph=(s%beat)/beat,hh=(s%(beat/2))/(beat/2);
+  const f=root*2*Math.pow(2,ch[b%3]/12),bf=root/2*Math.pow(2,ch[0]/12);
+  let v=Math.sin(P2*f*s)*Math.exp(-ph*4)*.3+Math.sin(P2*f*2*s)*Math.exp(-ph*6)*.08;
+  if(b%4==0)v+=Math.sin(P2*bf*s)*Math.exp(-ph*2)*.4;
+  v+=Math.sin(P2*root*Math.pow(2,ch[1]/12)*s)*.05+(Math.random()*2-1)*Math.exp(-hh*30)*.04;
+  d[i]=Math.max(-1,Math.min(1,v*Math.min(1,s/.5,(t.dur-s)/1.5)))*30000;
+ }
+ const buf=new ArrayBuffer(44+n*2),dv=new DataView(buf),w=(o,x)=>[...x].forEach((c,k)=>dv.setUint8(o+k,c.charCodeAt(0)));
+ w(0,"RIFF");dv.setUint32(4,36+n*2,true);w(8,"WAVEfmt ");dv.setUint32(16,16,true);dv.setUint16(20,1,true);dv.setUint16(22,1,true);
+ dv.setUint32(24,sr,true);dv.setUint32(28,sr*2,true);dv.setUint16(32,2,true);dv.setUint16(34,16,true);w(36,"data");dv.setUint32(40,n*2,true);
+ new Int16Array(buf,44).set(d);
+ return urls[t.id]=URL.createObjectURL(new Blob([buf],{type:"audio/wav"}));
+}
+function load(){au.src=wav(cur());au.currentTime=0;pos=0}
+function play(id,list){
+ if(list)queue=list;
+ qi=queue.findIndex(t=>t.id==id);load();playing=true;au.play().catch(()=>{});render();bar();
+}
+function toggle(){
+ if(!cur()){const l=shown();if(l.length)play(l[0].id,l);return}
+ playing=!playing;playing?au.play().catch(()=>{}):au.pause();render();bar();
+}
+function step(d){
+ if(!queue.length)return;
+ let n=shuf?Math.floor(Math.random()*queue.length):qi+d;
+ if(n<0)n=0;
+ if(n>=queue.length){if(rep)n=0;else{playing=false;au.pause();au.currentTime=0;pos=0;render();bar();return}}
+ qi=n;load();playing=true;au.play().catch(()=>{});render();bar();
+}
+au.addEventListener("timeupdate",()=>{pos=au.currentTime;bar()});
+au.addEventListener("ended",()=>step(1));
+$("main").addEventListener("click",e=>{
+ const h=e.target.closest("[data-h]");
+ if(h){const id=+h.dataset.h;liked.has(id)?liked.delete(id):liked.add(id);try{localStorage.setItem("tb-liked",JSON.stringify([...liked]))}catch(_){}render();return}
+ const r=e.target.closest("tr.r");if(r){const l=shown();play(+r.dataset.id,l);return}
+ const v=e.target.closest("[data-v]");if(v){view=+v.dataset.v;render()}
+ if(e.target.closest("#bigplay"))toggle();
+});
+$("nav").addEventListener("click",e=>{const v=e.target.closest("[data-v]");if(v){view=+v.dataset.v;render()}});
+$("q").addEventListener("input",e=>{q=e.target.value;render()});
+$("pp").onclick=toggle;$("next").onclick=()=>step(1);
+$("prev").onclick=()=>{if(pos>3){au.currentTime=0}else step(-1)};
+$("shuf").onclick=e=>{shuf=!shuf;e.currentTarget.classList.toggle("on",shuf)};
+$("rep").onclick=e=>{rep=!rep;e.currentTarget.classList.toggle("on",rep)};
+$("seek").oninput=e=>{if(cur()){au.currentTime=e.target.value/100*cur().dur;pos=au.currentTime;bar()}};
+$("vol").oninput=setVol;setVol();
+document.addEventListener("keydown",e=>{if(e.code=="Space"&&e.target.tagName!="INPUT"&&e.target.tagName!="BUTTON"){e.preventDefault();toggle()}});
+render();bar();
+</script>
+</body>
+</html>
